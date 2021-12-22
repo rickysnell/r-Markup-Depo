@@ -1,0 +1,122 @@
+---
+title: "Covid 19 Data Analysis"
+author : "Ricky Snell""
+date : "December 2021"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+####Import data set
+name_of_file <- read.csv(file.choose())
+#or
+#import dataset using readr
+
+###Ensure tibbles and tidyverse are working
+dim(covid19_df)
+vector_cols <- colnames(covid19_df)
+vector_cols
+head(covid19_df)
+glimpse(covid19_df)
+###extract only country level data from Province_State and remove Province column
+library(dplyr)
+covid_df_all_states <- covid19_df %>%
+      filter(Province_State == "All States")%>%
+      select(-Province_State)
+glimpse(covid_df_all_states)
+
+```
+
+
+```{r}
+####ID and seperate culmulative data and daily data will use each diffrently
+###Our focus is on daily data and daily measures
+covid_df_all_states_daily <- select(covid_df_all_states, Date, Country_Region,
+                                    active, hospitalizedCurr, daily_tested,
+                                    daily_positive)
+covid_df_all_states_culmul <- select(covid_df_all_states, positive, hospitalized,
+                                     recovered, death, total_tested)
+```
+
+
+```{r}
+###extract the top ten cases country data acting like a data scientist
+head(covid_df_all_states_daily)
+covid_df_all_states_daily_sum <- covid_df_all_states_daily %>%
+  group_by(Country_Region) %>%
+  summarize(tested = sum(daily_tested),
+            positive = sum(daily_positive),
+            active = sum(active),
+            hospitalized = sum(hospitalizedCurr)) %>%
+  arrange(-tested)
+covid_df_all_states_daily_sum
+```
+
+```{r}
+###code to show results of top 10 below using head function
+covid_top_10 <- head(covid_df_all_states_daily_sum, 10)
+covid_top_10
+```
+
+```{r}
+###Goal still to find which countries have had the highest number of positive
+##cases against the number of tests.  Need to extract vectors from top 10 the 
+#allow us to perform functions.
+#Create vectors from covid top 10 using pull function
+countries <- covid_top_10 $Country_Region
+tested_cases <- covid_top_10 $tested
+positive_cases <- covid_top_10 $positive
+active_cases <- covid_top_10 $active
+hospitalized_cases <- covid_top_10 $hospitalized
+
+```
+
+```{r}
+###naming the vectors with country names vector
+names(tested_cases) <- countries
+names(positive_cases) <- countries
+names(active_cases) <- countries
+names(hospitalized_cases) <- countries
+```
+
+```{r}
+###ID the top 3 positive against tested cases
+new_positive_tested <- positive_cases / tested_cases 
+positive_tested_top_3 <- sort(new_positive_tested, decreasing = TRUE)
+positive_tested_top_3
+positive_tested_top_3 <- head(positive_tested_top_3, 3)
+positive_tested_top_3
+```
+
+```{r}
+####to keep info above and need to create a matrix that contains ratio
+###and the overall number of covid 19 tested, positive, active, and hospitalized cases
+united_kingdom <- c(0.11, 1473672, 166909, 0, 0)
+united_states <- c(0.10, 17282363, 1877179, 0, 0)
+turkey <- c(0.08, 2031192, 163941, 2980960, 0)
+covid_mat <- rbind(united_kingdom, united_states, turkey)
+colnames(covid_mat) <- c("Ratio", "tested", "positive", "active", "hospitalized")
+covid_mat
+```
+
+```{r}
+###Use lists to put all our answers and datasets together.  Provides global view
+##and the ability to export results to other users.
+question <- "Which countries have had the highest 
+  number of positive cases against the number of tests?"
+answer <- c("Positive tested cases" = positive_tested_top_3)
+df_list <- list(name = "dataframes","covid_df", "covid_df_all_states", "covid_df_all_states_daily",
+                "covid_top_10")
+mat_list <- list(name = "matric", "covid_mat")
+vec_list <- list(name = "vectors", "vector_cols", "countries")
+data_structure_list <- list("df_list", "mat_list", "vec_list")
+
+covid_analysis_list <- list("question", "answer", "data_structure_list")
+names(covid_analysis_list) <- c("question", "answer", "data_structure_list")
+class(covid_analysis_list [2])
+
+```
+
+
+
