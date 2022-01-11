@@ -1,0 +1,166 @@
+---
+title: "Efficent DA Project 2 2021"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## GitHub Documents
+###Guided project to get acquinted with dataset, do data cleaning and analyze it.
+##As data analysis for company that sells books for learning programming.  Company wants
+##us to check out sales data and see if we can extract any useful information from it.
+#Inported dataset using readr book review...
+#how big is the data set?
+
+This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+
+## Including Code
+
+You can include R code in the document as follows:
+
+```{r book_review}
+dim(book_reviews)
+#number of rows in data set use nrow
+nrow(book_reviews)
+#2000
+#number of columns in data set
+ncol(book_reviews)
+#4
+#first 10 rows the head
+head(book_reviews, n = 10)
+#last 10 rows the tail
+tail(book_reviews, n = 10)
+#to get structure of DF or vector
+str(book_reviews)
+#Three columns of charater values and one of numbers the price
+#look at the summary breakdown of distribution for price mainly
+summary(book_reviews)
+#use glimpse function also provide good look at dataset
+glimpse(book_reviews)
+#What are the column names?
+colnames(book_reviews)
+```
+
+#book colunm represents name of the book Character values
+#review column represents a rating of the book Character values
+#State represents where book was sold Character values
+#price respresents how much the book sold for number/double values
+#Need to use iteration or for loop to figure out types of columns
+
+
+```{r}
+for (c in colnames(book_reviews)){
+  typeof(book_reviews[[c]])
+}
+#What are unique values in each column?
+for (c in colnames(book_reviews)){
+  print("unique values in column are:")
+  print (c)
+  print(unique(book_reviews[[c]]))
+  print("")
+}
+#remove all the NAs from the rows as this is useless and we dont know imputation yet
+filtered_review = book_reviews %>%
+    filter(!is.na(review))
+  
+dim(filtered_review)
+```
+
+
+```
+#results removed 206 rows that contained NA in review column.  1794 rows now
+#removing 200 lines of data could effect overall results should learn imputation
+
+#now need to get State column correct with states having two forms long and #abreviated
+#State data has the following information CA and California, NY and New York
+#FL and Florida and TX and Texas the four most pop states in USA
+#Create a new column clean_state using mutate() function with all state #abreviations.
+#bring in stringr toolset
+#Note that the `echo = FALSE` parameter was added to the code chunk to prevent #printing of the R code that generated the plot.
+
+```{r}
+install.packages("stringr")
+clean_review <- filtered_review %>%
+  mutate(
+    state = case_when(
+      state == "California" ~ "CA",
+      state == "New York" ~ "NY",
+      state == "Texas" ~ "TX",
+      state == "Florida" ~ "FL",
+      TRUE ~ state #ignore case where it is already postal code
+  )
+    )
+```
+
+#now focus on converting review choices into numeric form Need to convert #following
+# poor = 1, fair = 2, good = 3, great = 4 and exellent = 5 create column #review_num
+#create a new column to determine if score was high or not called is_high_review
+#for exercise 4 or higher qualifies as high score
+#it is TRUE if reveiw num is 4 or greater and false otherwise
+
+```{r}
+tidy_review <- clean_review %>%
+  mutate(
+    review_num = case_when(
+      review == "Poor" ~ "1",
+      review == "Fair" ~ "2",
+      review == "Good" ~ "3",
+      review == "Great" ~ "4",
+      TRUE ~ "5"#new column reveiw_num created coverting to numbers
+      ),
+    is_high_review  = if_else(
+      review_num >= "4" ,TRUE , FALSE) 
+  )
+```
+
+#new colunm is_high_review created with true value for high reveiw rating
+#Now we start data anyalysis with clean dataset called tidy_review
+#want to find out what book is most profitable??????
+#most profitable could mean book purchased the most...
+#could also mean how much money did each book generate.
+#I am focus on total count of book titles for popularity
+#need to try SPLIT Apply Combine Workflow to create function to count titles in #book column
+
+```{r}
+summary_count_book <- tidy_review %>%
+  group_by(book) %>%
+  summarize(
+    count = n()
+  ) %>%
+  arrange(-count)
+```
+
+#Report For Project 2 in Dataquest
+#
+#
+#Introduction
+#
+#I am working this data analysis project to improve my data analysis skills.
+#The data provided consisted of 2000 rows and 4 columns of information.  One #column 
+#consisted of double numeric data and the other 3 consisted of character data.
+#In this project I went though the process of understanding the data, cleaning the #data
+#figuring out which book was most profitable backed by anyalysis.  As just stated
+#My job was to answer the question of which book is the most profitable.
+#
+#
+#Findings
+#
+#Prior to answering the key question, The data had to be cleaned.  This included finding
+#unique values in each column, remove all the NAs from the dataset reducing the dataset
+#to 1794 rows of information, Standardizing the state column to reflect state intials
+#convert word ratings into numeric ratings and decide that 4 and above are good rating
+#based on my experiences.
+#
+#
+#Conclusion
+#
+#I chose profitability to mean the book that sold the most.  In the case of my 
+#analysis, Fundamentals of R for beginners book has highest total of all five 
+#but not by much as all five are between 352 and 366...
+
+
+
+
